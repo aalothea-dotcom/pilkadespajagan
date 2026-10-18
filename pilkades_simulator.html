@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulator Pilkades Digital - Desa Pajagan</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 25px;
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        header h1 {
+            color: #1a365d;
+            font-size: 24px;
+        }
+
+        header p {
+            color: #666;
+            font-size: 15px;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .active {
+            display: block;
+        }
+
+        .btn {
+            background-color: #2b6cb0;
+            color: white;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #2c5282;
+        }
+
+        .btn-success {
+            background-color: #2f855a;
+        }
+
+        .btn-success:hover {
+            background-color: #22543d;
+        }
+
+        /* Layout Kandidat Menyamping (Horizontal) */
+        .kandidat-container {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: stretch;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        .card-kandidat {
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            text-align: center;
+            padding: 20px 15px;
+            background: #fafafa;
+            flex: 1;
+            min-width: 220px;
+            max-width: 280px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .card-kandidat:hover {
+            transform: translateY(-4px);
+            border-color: #3182ce;
+        }
+
+        .nomor-urut {
+            background: #3182ce;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .foto-kandidat {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            background-color: #cbd5e0;
+            margin-bottom: 12px;
+            border: 3px solid #e2e8f0;
+        }
+
+        .nama-kandidat {
+            font-size: 17px;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 6px;
+        }
+
+        .slogan {
+            font-size: 13px;
+            color: #718096;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        /* Result Bar */
+        .result-bar {
+            margin-bottom: 15px;
+        }
+
+        .bar-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .bar-outer {
+            background: #edf2f7;
+            border-radius: 10px;
+            height: 20px;
+            overflow: hidden;
+        }
+
+        .bar-inner {
+            background: #3182ce;
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>SIMULATOR PILKADES DIGITAL</h1>
+        <p>Desa Pajagan - Kecamatan Cisitu</p>
+    </header>
+
+    <!-- LAYAR BILIK SUARA -->
+    <div id="screen-voting" class="screen active">
+        <h2 style="text-align: center; margin-bottom: 20px; color: #2d3748;">Surat Suara Digital</h2>
+
+        <div class="kandidat-container" id="kandidat-list">
+            <!-- Render oleh JavaScript -->
+        </div>
+
+        <div style="text-align: center; margin-top: 10px;">
+            <button class="btn" onclick="showResults()">Lihat Hasil Quick Count</button>
+        </div>
+    </div>
+
+    <!-- LAYAR KONFIRMASI SUKSES -->
+    <div id="screen-success" class="screen" style="text-align: center; padding: 30px 10px;">
+        <h2 style="color: #2f855a; margin-bottom: 10px;">? Suara Berhasil Disimpan!</h2>
+        <p style="color: #4a5568; margin-bottom: 25px;">Terima kasih telah berpartisipasi dalam pemungutan suara.</p>
+        <button class="btn btn-success" onclick="goToScreen('screen-voting')">Pilih Lagi (Simulasi)</button>
+        <button class="btn" onclick="showResults()" style="margin-left: 10px;">Lihat Hasil Quick Count</button>
+    </div>
+
+    <!-- LAYAR REKAPITULASI HASIL (QUICK COUNT) -->
+    <div id="screen-result" class="screen">
+        <h2 style="margin-bottom: 10px; color: #2d3748;">Hasil Perhitungan Suara Real-Time</h2>
+        <p style="margin-bottom: 20px; color: #666;">Total Suara Masuk: <strong id="total-suara">0</strong></p>
+
+        <div id="result-list">
+            <!-- Render Hasil oleh JavaScript -->
+        </div>
+
+        <div style="margin-top: 25px; display: flex; gap: 10px;">
+            <button class="btn" onclick="goToScreen('screen-voting')">Kembali ke Pemilihan</button>
+            <button class="btn" onclick="resetSuara()" style="background-color: #e53e3e;">Reset Data Suara</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // DATA KANDIDAT
+    const kandidatData = [
+        {
+            id: 1,
+            nama: "Carma.",
+            slogan: "Maju, Mandiri, dan Sejahtera",
+            foto: "https://via.placeholder.com/120?text=Calon+1",
+            suara: 0
+        },
+        {
+            id: 2,
+            nama: "Miing.",
+            slogan: "Gotong Royong Membangun Desa",
+            foto: "https://via.placeholder.com/120?text=Calon+2",
+            suara: 0
+        },
+        {
+            id: 3,
+            nama: "A'Alo Tea",
+            slogan: "Jujur, Transparan, dan Melayani",
+            // Foto Calon 3 yang Anda berikan
+            foto: "https://6ad4a00a106919c03a913d08.imgix.net/sandbox/alo.jpg",
+            suara: 0
+        }
+    ];
+
+    let totalSuaraMasuk = 0;
+
+    // Navigasi Layar
+    function goToScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    // Render Calon Menyamping
+    function renderKandidat() {
+        const container = document.getElementById('kandidat-list');
+        container.innerHTML = "";
+
+        kandidatData.forEach(k => {
+            const card = document.createElement('div');
+            card.className = "card-kandidat";
+            card.innerHTML = `
+                <div class="nomor-urut">${k.id}</div>
+                <img src="${k.foto}" alt="${k.nama}" class="foto-kandidat">
+                <div class="nama-kandidat">${k.nama}</div>
+                <div class="slogan">"${k.slogan}"</div>
+                <button class="btn btn-success" style="width: 100%;" onclick="pilihKandidat(${k.id})">COBLOS</button>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    // Proses Pilih
+    function pilihKandidat(id) {
+        const kandidat = kandidatData.find(k => k.id === id);
+        if (kandidat) {
+            const confirmVote = confirm("Apakah Anda yakin ingin memilih Nomor Urut " + id + " (" + kandidat.nama + ")?");
+            if (confirmVote) {
+                kandidat.suara++;
+                totalSuaraMasuk++;
+                goToScreen('screen-success');
+            }
+        }
+    }
+
+    // Tampilkan Quick Count
+    function showResults() {
+        const resultList = document.getElementById('result-list');
+        const totalSuaraEl = document.getElementById('total-suara');
+        
+        resultList.innerHTML = "";
+        totalSuaraEl.innerText = totalSuaraMasuk;
+
+        kandidatData.forEach(k => {
+            const persentase = totalSuaraMasuk > 0 ? ((k.suara / totalSuaraMasuk) * 100).toFixed(1) : 0;
+            
+            const barHTML = `
+                <div class="result-bar">
+                    <div class="bar-label">
+                        <span>#${k.id} ${k.nama}</span>
+                        <span>${k.suara} Suara (${persentase}%)</span>
+                    </div>
+                    <div class="bar-outer">
+                        <div class="bar-inner" style="width: ${persentase}%"></div>
+                    </div>
+                </div>
+            `;
+            resultList.innerHTML += barHTML;
+        });
+
+        goToScreen('screen-result');
+    }
+
+    // Reset Suara Simulasi
+    function resetSuara() {
+        if (confirm("Apakah Anda yakin ingin mengosongkan semua perolehan suara?")) {
+            kandidatData.forEach(k => k.suara = 0);
+            totalSuaraMasuk = 0;
+            showResults();
+        }
+    }
+
+    // Inisialisasi Tampilan
+    renderKandidat();
+</script>
+
+</body>
+</html>
